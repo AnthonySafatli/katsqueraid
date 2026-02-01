@@ -1,10 +1,12 @@
 using Mirror;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
 using static TrapEnum;
 
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(PlayerInput))]
 public class FPController : NetworkBehaviour
 {
     [Header("Movement Parameters")]
@@ -44,7 +46,11 @@ public class FPController : NetworkBehaviour
     [Header("Components")]
     [SerializeField] CinemachineCamera fpCamera;
     [SerializeField] CharacterController characterController;
+    [SerializeField] PlayerInput playerInput;
     [SerializeField] Animator PlayerAnimator;
+    [SerializeField] InputAction moveAction;
+    [SerializeField] InputAction lookAction;
+    [SerializeField] InputAction jumpAction;
 
     [Space(15)]
     [SerializeField] GameObject playerModel;
@@ -66,6 +72,10 @@ public class FPController : NetworkBehaviour
 
     void Awake()
     {
+        // ✅ Always auto-wire required components
+        if (characterController == null) characterController = GetComponent<CharacterController>();
+        if (playerInput == null) playerInput = GetComponent<PlayerInput>();
+
         if (playerModel != null)
             bodyRenderers = playerModel.GetComponentsInChildren<Renderer>(true);
     }
@@ -73,16 +83,27 @@ public class FPController : NetworkBehaviour
     void Update()
     {
         if (!isLocalPlayer) return;
+
+        if (moveAction != null) MoveInput = moveAction.ReadValue<Vector2>();
+        if (lookAction != null) LookInput = lookAction.ReadValue<Vector2>();
+
         MoveUpdate();
         LookUpdate();
+
         playerModel.transform.position = characterController.transform.position;
     }
 
     public override void OnStartClient()
     {
-        // Make sure remote players don't run local input/camera
+        // ✅ Critical: remote player objects on this client must NOT have PlayerInput enabled
         if (!isLocalPlayer)
         {
+            if (playerInput != null)
+            {
+                playerInput.DeactivateInput();
+                playerInput.enabled = false;
+            }
+
             if (fpCamera != null)
             {
                 fpCamera.enabled = false;
@@ -93,16 +114,25 @@ public class FPController : NetworkBehaviour
         }
     }
 
-    public override void OnStartLocalPlayer()
+        public override void OnStartLocalPlayer()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        if (characterController == null)
-            characterController = GetComponent<CharacterController>();
-
         if (hideBodyForOwner)
             SetLocalBodyHidden(true);
+
+        if (playerInput == null) playerInput = GetComponent<PlayerInput>();
+        playerInput.enabled = true;
+        playerInput.ActivateInput();
+
+        moveAction = playerInput.actions.FindAction("Move", throwIfNotFound: true);
+        lookAction = playerInput.actions.FindAction("Look", throwIfNotFound: true);
+        jumpAction = playerInput.actions.FindAction("Jump", throwIfNotFound: true);
+
+        moveAction.Enable();
+        lookAction.Enable();
+        jumpAction.Enable();
     }
 
     void SetLocalBodyHidden(bool hidden)

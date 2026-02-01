@@ -154,7 +154,6 @@ GameObject:
   - component: {fileID: 8442114057808392797}
   - component: {fileID: -6050994951534177104}
   - component: {fileID: 7844817544380872112}
-  - component: {fileID: 7353515563349326518}
   m_Layer: 0
   m_Name: PlayerPrefabDefault
   m_TagString: Untagged
@@ -329,26 +328,38 @@ MonoBehaviour:
   LookInput: {x: 0, y: 0}
   fpCamera: {fileID: 7715189286781627593}
   characterController: {fileID: 3549391359706752913}
+  playerInput: {fileID: 8225850637688191011}
   PlayerAnimator: {fileID: 6106515733824691886}
+  moveAction:
+    m_Name: Move
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 3c5a9083-1a6e-4f41-8791-39929d5bcd04
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  lookAction:
+    m_Name: Look
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 80dfc4c1-8ecc-4300-901f-7ccace8caeaf
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  jumpAction:
+    m_Name: Jump
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 7395c449-a3a0-4b7a-871a-52b3dc516a0a
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
   playerModel: {fileID: 654517062038314606}
   hideBodyForOwner: 1
   keepShadowsWhenHidden: 1
---- !u!114 &7353515563349326518
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7942033780488351047}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5db5ddb1f495546a0858e7cf5c7b7f24, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FPPLayer
-  syncDirection: 0
-  syncMode: 0
-  syncInterval: 0
-  FPController: {fileID: 7844817544380872112}
 --- !u!1001 &420002572090532671
 PrefabInstance:
   m_ObjectHideFlags: 0

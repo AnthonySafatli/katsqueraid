@@ -3,31 +3,44 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(FPController))]
-public class FPPLayer : NetworkBehaviour
+[RequireComponent(typeof(PlayerInput))]
+public class FPPlayer : NetworkBehaviour
 {
     [Header("Components")]
     [SerializeField] FPController FPController;
+    [SerializeField] PlayerInput playerInput;
 
     #region Input Handling
 
-    void OnMove(InputValue value)
+    void Awake()
     {
-        if (!isLocalPlayer) return;
-
-        FPController.MoveInput = value.Get<Vector2>();
+        FPController.GetComponent<FPController>();
+        playerInput = GetComponent<PlayerInput>();
     }
 
-    void OnLook(InputValue value)
+    public override void OnStartClient()
     {
-        if (!isLocalPlayer) return;
+        if (playerInput != null)
+            playerInput.enabled = true;
 
-        FPController.LookInput = value.Get<Vector2>();
+        enabled = isLocalPlayer;
     }
+
+    public override void OnStartLocalPlayer()
+    {
+        if (playerInput != null)
+        {
+            playerInput.enabled = true;
+            playerInput.ActivateInput();
+        }
+    }
+
+    void OnMove(InputValue value) => FPController.MoveInput = value.Get<Vector2>();
+
+    void OnLook(InputValue value) => FPController.LookInput = value.Get<Vector2>();
 
     void OnJump(InputValue value)
     {
-        if (!isLocalPlayer) return;
-
         if (value.isPressed)
         {
             FPController.TryJump();
