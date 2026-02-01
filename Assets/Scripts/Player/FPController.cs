@@ -72,7 +72,6 @@ public class FPController : NetworkBehaviour
 
     void Awake()
     {
-        // ✅ Always auto-wire required components
         if (characterController == null) characterController = GetComponent<CharacterController>();
         if (playerInput == null) playerInput = GetComponent<PlayerInput>();
 
@@ -95,7 +94,6 @@ public class FPController : NetworkBehaviour
 
     public override void OnStartClient()
     {
-        // ✅ Critical: remote player objects on this client must NOT have PlayerInput enabled
         if (!isLocalPlayer)
         {
             if (playerInput != null)
@@ -137,39 +135,33 @@ public class FPController : NetworkBehaviour
         jumpAction.performed += OnJumpPerformed;
     }
 
-    void SetLocalBodyHidden(bool hidden)
+
+    void OnCollisionEnter(Collision collision)
     {
-        if (bodyRenderers == null || bodyRenderers.Length == 0)
+        if (collision.gameObject.CompareTag("Trap") /* && !Imposter */)
         {
-            if (playerModel != null)
-                bodyRenderers = playerModel.GetComponentsInChildren<Renderer>(true);
-            if (bodyRenderers == null) return;
-        }
-
-        foreach (var r in bodyRenderers)
-        {
-            if (r == null) continue;
-
-            if (!hidden)
+            Trap trap = collision.gameObject.GetComponent<Trap>();
+            if (trap != null)
             {
-                r.enabled = true;
-                r.shadowCastingMode = ShadowCastingMode.On;
-                continue;
-            }
+                switch (trap.TrapType)
+                {
+                    case "Slow":
+                        trapSpeedMultiplier = 0.5f;
+                        break;
 
-            if (keepShadowsWhenHidden)
-            {
-                r.enabled = true; // keep renderer enabled so it can cast shadows
-                r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+                    case "Inverse":
+                        trapControllerMultiplier = -1f;
+                        break;
+
+                    case "Stun":
+                        trapSpeedMultiplier = 0f;
+                        break;
+                }
+
+                StartCoroutine(trap.ActivateTrap(trap.Duration));
             }
-            else
-            {
-                r.enabled = false;
-            }
-        }
+       }
     }
-
-
 
     #endregion
 
@@ -241,10 +233,42 @@ public class FPController : NetworkBehaviour
         // Looking left and right
         transform.Rotate(Vector3.up * input.x);
     }
+    
+    void SetLocalBodyHidden(bool hidden)
+    {
+        if (bodyRenderers == null || bodyRenderers.Length == 0)
+        {
+            if (playerModel != null)
+                bodyRenderers = playerModel.GetComponentsInChildren<Renderer>(true);
+            if (bodyRenderers == null) return;
+        }
+
+        foreach (var r in bodyRenderers)
+        {
+            if (r == null) continue;
+
+            if (!hidden)
+            {
+                r.enabled = true;
+                r.shadowCastingMode = ShadowCastingMode.On;
+                continue;
+            }
+
+            if (keepShadowsWhenHidden)
+            {
+                r.enabled = true;
+                r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+            }
+            else
+            {
+                r.enabled = false;
+            }
+        }
+    }
 
     void HandleTrapEffects()
     {
-
+        
     }
 
     #endregion
