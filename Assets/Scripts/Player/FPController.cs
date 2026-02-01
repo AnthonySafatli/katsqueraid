@@ -3,7 +3,6 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
-using static TrapEnum;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerInput))]
@@ -62,10 +61,13 @@ public class FPController : NetworkBehaviour
     [SerializeField] bool keepShadowsWhenHidden = true;
 
     [Header("Internal")]
-    bool trapFlag;
-    float trapSpeedMultiplier = 1f;
-    float trapControllerMultiplier = 1f;
+    [SyncVar] float trapSpeedMultiplier = 1f;
+    [SyncVar] float trapControllerMultiplier = 1f;
 
+    Coroutine serverTrapRoutine;
+    bool _triggeredTrapThisFrame;
+
+    void LateUpdate() => _triggeredTrapThisFrame = false;
     Renderer[] bodyRenderers;
 
     #region Unity Methods
@@ -135,32 +137,73 @@ public class FPController : NetworkBehaviour
         jumpAction.performed += OnJumpPerformed;
     }
 
-
-    void OnCollisionEnter(Collision collision)
+    [ClientCallback]
+    void OnTriggerEnter(Collider other)
     {
-        if (collision.gameObject.CompareTag("Trap") /* && !Imposter */)
+        if (!isLocalPlayer) return;
+        if (_triggeredTrapThisFrame) return;
+        if (!other.CompareTag("Trap")) return;
+
+        var trap = other.GetComponent<Trap>();
+        var trapIdentity = other.GetComponent<NetworkIdentity>();
+        if (trap == null || trapIdentity == null) return;
+
+        _triggeredTrapThisFrame = true;
+        CmdHitTrap(trapIdentity);
+    }
+
+    [Command]
+    void CmdHitTrap(NetworkIdentity trapIdentity)
+    {
+        if (trapIdentity == null) return;
+
+        var trap = trapIdentity.GetComponent<Trap>();
+        if (trap == null) return;
+
+        // Basic validation (keeps it from being trivially spoofed)
+        float maxDist = 2.5f;
+        if ((trap.transform.position - transform.position).sqrMagnitude > maxDist * maxDist)
+            return;
+
+        // Apply server-authoritative effect (your SyncVar-based approach is great)
+        ServerApplyTrap(TrapEnum.TrapType.Stun, trap.Duration);
+
+        NetworkServer.Destroy(trap.gameObject);
+    }
+
+    [Server]
+    public void ServerApplyTrap(TrapEnum.TrapType type, float duration)
+    {
+        // overwrite (simple). If you need stacking later, we can improve it.
+        switch (type)
         {
-            Trap trap = collision.gameObject.GetComponent<Trap>();
-            if (trap != null)
-            {
-                switch (trap.TrapType)
-                {
-                    case "Slow":
-                        trapSpeedMultiplier = 0.5f;
-                        break;
+            case TrapEnum.TrapType.Slow:
+                trapSpeedMultiplier = 0.5f;
+                trapControllerMultiplier = 1f;
+                break;
 
-                    case "Inverse":
-                        trapControllerMultiplier = -1f;
-                        break;
+            case TrapEnum.TrapType.Inverse:
+                trapSpeedMultiplier = 1f;
+                trapControllerMultiplier = -1f;
+                break;
 
-                    case "Stun":
-                        trapSpeedMultiplier = 0f;
-                        break;
-                }
+            case TrapEnum.TrapType.Stun:
+                trapSpeedMultiplier = 0f;
+                trapControllerMultiplier = 1f;
+                break;
+        }
 
-                StartCoroutine(trap.ActivateTrap(trap.Duration));
-            }
-       }
+        if (serverTrapRoutine != null) StopCoroutine(serverTrapRoutine);
+        serverTrapRoutine = StartCoroutine(ServerResetTrapAfter(duration));
+    }
+
+    [Server]
+    System.Collections.IEnumerator ServerResetTrapAfter(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        trapSpeedMultiplier = 1f;
+        trapControllerMultiplier = 1f;
+        serverTrapRoutine = null;
     }
 
     #endregion
@@ -233,7 +276,7 @@ public class FPController : NetworkBehaviour
         // Looking left and right
         transform.Rotate(Vector3.up * input.x);
     }
-    
+
     void SetLocalBodyHidden(bool hidden)
     {
         if (bodyRenderers == null || bodyRenderers.Length == 0)
@@ -264,11 +307,6 @@ public class FPController : NetworkBehaviour
                 r.enabled = false;
             }
         }
-    }
-
-    void HandleTrapEffects()
-    {
-        
     }
 
     #endregion
