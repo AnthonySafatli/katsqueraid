@@ -1,7 +1,8 @@
 using Mirror;
-using NUnit.Framework;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.Rendering;
+using static TrapEnum;
 
 [RequireComponent(typeof(CharacterController))]
 public class FPController : NetworkBehaviour
@@ -45,13 +46,36 @@ public class FPController : NetworkBehaviour
     [SerializeField] CharacterController characterController;
     [SerializeField] Animator PlayerAnimator;
 
+    [Space(15)]
+    [SerializeField] GameObject playerModel;
+
+    [Header("First Person Visuals")]
+    [SerializeField] bool hideBodyForOwner = true;
+
+    [Tooltip("If true, your body mesh is invisible but still casts shadows.")]
+    [SerializeField] bool keepShadowsWhenHidden = true;
+
+    [Header("Internal")]
+    bool trapFlag;
+    float trapSpeedMultiplier = 1f;
+    float trapControllerMultiplier = 1f;
+
+    Renderer[] bodyRenderers;
+
     #region Unity Methods
+
+    void Awake()
+    {
+        if (playerModel != null)
+            bodyRenderers = playerModel.GetComponentsInChildren<Renderer>(true);
+    }
 
     void Update()
     {
         if (!isLocalPlayer) return;
         MoveUpdate();
         LookUpdate();
+        playerModel.transform.position = characterController.transform.position;
     }
 
     public override void OnStartClient()
@@ -62,34 +86,58 @@ public class FPController : NetworkBehaviour
             if (fpCamera != null)
             {
                 fpCamera.enabled = false;
-                var listener = fpCamera.GetComponent<AudioListener>();
+
+                var listener = fpCamera.GetComponentInChildren<AudioListener>();
                 if (listener != null) listener.enabled = false;
             }
-
-            // Prevent remote objects from capturing local input
-            if (fpCamera != null) fpCamera.enabled = false;
         }
     }
 
     public override void OnStartLocalPlayer()
     {
-        // Enable camera + audio only for the local player
-        // if (Camera.main != null)
-        // {
-        //     Camera.main.enabled = true;
-        //     var listener = Camera.main.GetComponent<AudioListener>();
-        //     if (listener != null) listener.enabled = true;
-        // }
-
-        // // Enable PlayerInput for local player
-        // if (Camera.main != null) Camera.main.enabled = true;
-
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        
+
         if (characterController == null)
             characterController = GetComponent<CharacterController>();
+
+        if (hideBodyForOwner)
+            SetLocalBodyHidden(true);
     }
+
+    void SetLocalBodyHidden(bool hidden)
+    {
+        if (bodyRenderers == null || bodyRenderers.Length == 0)
+        {
+            if (playerModel != null)
+                bodyRenderers = playerModel.GetComponentsInChildren<Renderer>(true);
+            if (bodyRenderers == null) return;
+        }
+
+        foreach (var r in bodyRenderers)
+        {
+            if (r == null) continue;
+
+            if (!hidden)
+            {
+                r.enabled = true;
+                r.shadowCastingMode = ShadowCastingMode.On;
+                continue;
+            }
+
+            if (keepShadowsWhenHidden)
+            {
+                r.enabled = true; // keep renderer enabled so it can cast shadows
+                r.shadowCastingMode = ShadowCastingMode.ShadowsOnly;
+            }
+            else
+            {
+                r.enabled = false;
+            }
+        }
+    }
+
+
 
     #endregion
 
@@ -105,19 +153,17 @@ public class FPController : NetworkBehaviour
 
     void MoveUpdate()
     {
-        Vector3 motion = transform.forward * MoveInput.y + transform.right * MoveInput.x;
+        Vector3 motion = transform.forward * MoveInput.y + transform.right * MoveInput.x * trapControllerMultiplier;
         motion.y = 0f;
         motion.Normalize();
 
         if (motion.sqrMagnitude >= 0.1f)
         {
-            CurrentVelocity = Vector3.MoveTowards(CurrentVelocity, motion * MaxSpeed, Acceleration * Time.deltaTime);
-            PlayerAnimator.SetBool("IsRunning", true);
+            CurrentVelocity = Vector3.MoveTowards(CurrentVelocity, motion * MaxSpeed * trapSpeedMultiplier, Acceleration * Time.deltaTime);
         }
         else
         {
             CurrentVelocity = Vector3.MoveTowards(CurrentVelocity, Vector3.zero, Acceleration * Time.deltaTime);
-            PlayerAnimator.SetBool("IsRunning", false);
         }
 
         if (IsGrounded && VerticalVelocity < 0f)
@@ -135,11 +181,20 @@ public class FPController : NetworkBehaviour
         characterController.Move(fullVelocity * Time.deltaTime);
 
         CurrentSpeed = CurrentVelocity.magnitude;
+
+        if (CurrentVelocity.sqrMagnitude > 0.01f)
+        {
+            PlayerAnimator.SetBool("IsRunning", true);
+        }
+        else
+        {
+            PlayerAnimator.SetBool("IsRunning", false);
+        }
     }
 
     void LookUpdate()
     {
-        Vector2 input = new Vector2(LookInput.x * LookSensitivity.x, LookInput.y * LookSensitivity.y);
+        Vector2 input = new Vector2(LookInput.x * LookSensitivity.x * trapControllerMultiplier, LookInput.y * LookSensitivity.y * trapControllerMultiplier);
 
         // Looking up and down
         CurrentPitch -= input.y;
@@ -147,6 +202,11 @@ public class FPController : NetworkBehaviour
 
         // Looking left and right
         transform.Rotate(Vector3.up * input.x);
+    }
+
+    void HandleTrapEffects()
+    {
+
     }
 
     #endregion

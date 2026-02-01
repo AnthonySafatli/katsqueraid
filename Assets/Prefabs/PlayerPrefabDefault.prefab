@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 2657264159132758517}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalPosition: {x: 0, y: 3.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -101,7 +101,7 @@ Transform:
   m_GameObject: {fileID: 6544132837806637511}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalPosition: {x: 0, y: 3.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -215,13 +215,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 1
-  m_Radius: 0.5
+  m_Height: 5
+  m_Radius: 2
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0.48, z: 0}
+  m_Center: {x: 0, y: 2.3, z: 0}
 --- !u!114 &8225850637688191011
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -318,7 +318,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  MaxSpeed: 3.5
+  MaxSpeed: 13
   Acceleration: 15
   JumpHeight: 2
   LookSensitivity: {x: 0.1, y: 0.1}
@@ -330,6 +330,9 @@ MonoBehaviour:
   fpCamera: {fileID: 7715189286781627593}
   characterController: {fileID: 3549391359706752913}
   PlayerAnimator: {fileID: 6106515733824691886}
+  playerModel: {fileID: 654517062038314606}
+  hideBodyForOwner: 1
+  keepShadowsWhenHidden: 1
 --- !u!114 &7353515563349326518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -394,6 +397,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -8017449571587430431, guid: 8b7dcfdb771b64f89b2cdbe5bc2c83aa, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 52074c643a25a1a4c9bddd3169503fb6, type: 2}
+    - target: {fileID: -2641288237696090860, guid: 8b7dcfdb771b64f89b2cdbe5bc2c83aa, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f3a0723d23747d94b95ffdcb7bb9b406, type: 2}
     - target: {fileID: 919132149155446097, guid: 8b7dcfdb771b64f89b2cdbe5bc2c83aa, type: 3}
       propertyPath: m_Name
       value: T-Pose
@@ -405,13 +416,55 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8b7dcfdb771b64f89b2cdbe5bc2c83aa, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8265637285212139600}
   m_SourcePrefab: {fileID: 100100000, guid: 8b7dcfdb771b64f89b2cdbe5bc2c83aa, type: 3}
 --- !u!4 &170749071836415188 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8b7dcfdb771b64f89b2cdbe5bc2c83aa, type: 3}
   m_PrefabInstance: {fileID: 420002572090532671}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &654517062038314606 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 8b7dcfdb771b64f89b2cdbe5bc2c83aa, type: 3}
+  m_PrefabInstance: {fileID: 420002572090532671}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8265637285212139600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 654517062038314606}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8ff3ba0becae47b8b9381191598957c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Mirror.Components::Mirror.NetworkTransformReliable
+  syncDirection: 1
+  syncMode: 0
+  syncInterval: 0
+  target: {fileID: 170749071836415188}
+  syncPosition: 1
+  syncRotation: 1
+  syncScale: 0
+  onlySyncOnChange: 1
+  compressRotation: 1
+  interpolatePosition: 1
+  interpolateRotation: 1
+  interpolateScale: 1
+  coordinateSpace: 0
+  timelineOffset: 1
+  showGizmos: 0
+  showOverlay: 0
+  overlayColor: {r: 0, g: 0, b: 0, a: 0.5}
+  onlySyncOnChangeCorrectionMultiplier: 2
+  useFixedUpdate: 0
+  rotationSensitivity: 0.01
+  positionPrecision: 0.01
+  scalePrecision: 0.01
 --- !u!95 &6106515733824691886 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 8b7dcfdb771b64f89b2cdbe5bc2c83aa, type: 3}
