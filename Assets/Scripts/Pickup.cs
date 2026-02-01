@@ -1,6 +1,7 @@
+using Mirror;
+using Mirror.Examples.Common;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Mirror;
 
 public class Pickup : NetworkBehaviour
 {
@@ -12,37 +13,60 @@ public class Pickup : NetworkBehaviour
     private PlayerInput playerInput;
     private InputAction grabAction;
 
+    private bool wasGrabPressed;
+
     void Awake()
     {
         playerInput = GetComponentInParent<PlayerInput>();
     }
 
+    public override void OnStartClient()
+    {
+        if (!isLocalPlayer)
+        {
+            if (playerInput != null) playerInput.enabled = false;
+        }
+    }
+
     public override void OnStartLocalPlayer()
     {
+        if (playerInput != null) playerInput.enabled = true;
+
         grabAction = playerInput.actions.FindAction("Grab", throwIfNotFound: true);
-        playerInput.actions.Enable();
-        grabAction.Enable();
-        grabAction.performed += OnGrabPerformed;
     }
 
-    void OnDestroy()
+    void Update()
     {
-        if (grabAction != null)
-            grabAction.performed -= OnGrabPerformed;
-    }
+        if (!isLocalPlayer || grabAction == null) return;
 
-    void OnGrabPerformed(InputAction.CallbackContext context)
-    {
-        if (!isLocalPlayer) return;
+        bool grabPressed = grabAction.ReadValue<float>() > 0.5f;
 
-        if (heldObject == null)
-            CmdTryPickup();
+        if (grabPressed)
+        {
+            if (heldObject == null && !wasGrabPressed)
+            {
+                TryPickup(); 
+            }
+        }
         else
-            CmdDrop();
+        {
+            if (heldObject != null)
+            {
+                Drop();
+            }
+        }
+
+        wasGrabPressed = grabPressed;
+
+        if (heldObject != null)
+        {
+            heldObject.transform.position = holdPoint.position;
+            heldObject.transform.rotation = holdPoint.rotation;
+        }
     }
 
-    [Command]
-    void CmdTryPickup()
+
+    void TryPickup()
     {
         Ray ray = new Ray(transform.position, transform.forward);
 
@@ -50,52 +74,24 @@ public class Pickup : NetworkBehaviour
         {
             if (hit.collider.CompareTag("Pickable"))
             {
-                heldObject = hit.collider.gameObject;
+                var hitObj = hit.collider.gameObject;
+                var state = hitObj.GetComponent<MaskSharedState>();
+
+                if (state == null || state.isGrabbed) return;
+                
+                state.RequestChange(true);
+                heldObject = hitObj;
                 Rigidbody rb = heldObject.GetComponent<Rigidbody>();
-
-                rb.isKinematic = true;
-                heldObject.transform.SetParent(holdPoint);
-                heldObject.transform.localPosition = Vector3.zero;
-                heldObject.transform.localRotation = Quaternion.identity;
-
-                RpcPickup(heldObject);
             }
         }
     }
 
-    [Command]
-    void CmdDrop()
+    void Drop()
     {
         if (heldObject == null) return;
 
         Rigidbody rb = heldObject.GetComponent<Rigidbody>();
-
-        heldObject.transform.SetParent(null);
-        rb.isKinematic = false;
-
-        RpcDrop(heldObject);
-
+        heldObject.GetComponent<MaskSharedState>().RequestChange(false);
         heldObject = null;
     }
-
-    [ClientRpc]
-    void RpcPickup(GameObject obj)
-    {
-        if (isLocalPlayer) return; // Local player already handled visuals
-        heldObject = obj;
-        heldObject.transform.SetParent(holdPoint);
-        heldObject.transform.localPosition = Vector3.zero;
-        heldObject.transform.localRotation = Quaternion.identity;
-    }
-
-    [ClientRpc]
-    void RpcDrop(GameObject obj)
-    {
-        if (isLocalPlayer) return;
-        Rigidbody rb = obj.GetComponent<Rigidbody>();
-        obj.transform.SetParent(null);
-        rb.isKinematic = false;
-        heldObject = null;
-    }
-
 }

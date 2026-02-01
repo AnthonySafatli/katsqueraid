@@ -37,8 +37,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 3.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 8701860315778131937}
+  m_Children: []
   m_Father: {fileID: 3968840173688101124}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7715189286781627593
@@ -216,12 +215,12 @@ MonoBehaviour:
 =======
   m_GameObject: {fileID: 5861440084541874896}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1340619942470541623}
+  m_Father: {fileID: 3968840173688101124}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 >>>>>>> bb57bdd (Got basic pickup system kinda)
 --- !u!1 &7942033780488351047
@@ -259,9 +258,14 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+<<<<<<< HEAD
   - {fileID: 435214245029462257}
   - {fileID: 3298100499018884987}
   - {fileID: 170749071836415188}
+=======
+  - {fileID: 1340619942470541623}
+  - {fileID: 8701860315778131937}
+>>>>>>> 9f76e38 (Got grabbing working)
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3897859322083013873
