@@ -17,10 +17,12 @@ public class DropZone : MonoBehaviour
     {
         if (NetworkClient.localPlayer.gameObject != other.gameObject) return;
 
+        bool isImposter = NetworkClient.localPlayer.GetComponent<Imposter>().isImposter;
+
         if (dropOffUi != null) 
             dropOffUi.SetActive(true);
 
-        if (stealUi != null)
+        if (stealUi != null && isImposter)
             stealUi.SetActive(true);
 
         playerInput = other.GetComponent<PlayerInput>();
@@ -28,8 +30,11 @@ public class DropZone : MonoBehaviour
         dropOffAction = playerInput.actions["DropOff"];
         dropOffAction.performed += OnPlayerDrop;
 
-        stealAction = playerInput.actions["Steal"];
-        stealAction.performed += OnPlayerSteal;
+        if (isImposter)
+        {
+            stealAction = playerInput.actions["Steal"];
+            stealAction.performed += OnPlayerSteal;
+        }
     }
 
     void OnTriggerExit(Collider other)
@@ -64,6 +69,8 @@ public class DropZone : MonoBehaviour
 
     private void OnPlayerSteal(InputAction.CallbackContext context)
     {
+        if (!NetworkClient.localPlayer.GetComponent<Imposter>().isImposter) return;
+
         var pickupScript = NetworkClient.localPlayer.GetComponentInChildren<Pickup>();
 
         var maskValue = pickupScript.GetMaskValue();

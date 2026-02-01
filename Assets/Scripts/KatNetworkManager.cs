@@ -4,10 +4,14 @@ using UnityEngine;
 [AddComponentMenu("")]
 public class KatNetworkManager : NetworkManager
 {
-    public Transform[] playerSpawnPoints;
-    public GameObject Mask;
+    public int playersToStart = 4;
 
-    private bool maskSpawned = false;
+    public Transform[] playerSpawnPoints;
+
+    public GameObject Mask;
+    public Transform[] maskSpawnPoints;
+
+    private bool masksSpawned = false;
 
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {
@@ -16,16 +20,36 @@ public class KatNetworkManager : NetworkManager
 
         NetworkServer.AddPlayerForConnection(conn, player);
 
-        if (numPlayers == 1 && !maskSpawned)
+        if (numPlayers == playersToStart && !masksSpawned)
         {
-            SpawnMask();
+            // Spawn masks
+            foreach (Transform maskSpawnPoint in maskSpawnPoints)
+                SpawnMaskAtPosition(maskSpawnPoint);
+
+            AssignRandomImposter();
+            masksSpawned = true;
         }
     }
 
-    void SpawnMask()
+    void AssignRandomImposter()
     {
-        GameObject mask = Instantiate(Mask, Vector3.zero, Quaternion.identity);
+        int randomIndex = Random.Range(0, NetworkServer.connections.Count);
+        int i = 0;
+
+        foreach (var conn in NetworkServer.connections.Values)
+        {
+            if (i == randomIndex)
+            {
+                conn.identity.GetComponent<Imposter>().isImposter = true;
+                break;
+            }
+            i++;
+        }
+    }
+
+    void SpawnMaskAtPosition(Transform trans)
+    {
+        GameObject mask = Instantiate(Mask, trans.position, Quaternion.identity);
         NetworkServer.Spawn(mask);
-        maskSpawned = true;
     }
 }
