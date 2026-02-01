@@ -5,7 +5,7 @@ public class MaskData
     public string Name { get; }
     public int Points { get; }
     public float SpawnRate { get; }
-    
+    public float StealMultiplier => 3.2f;  
 
     public MaskData(string name, int points, float spawnRate)
     {

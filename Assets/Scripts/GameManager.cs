@@ -1,5 +1,7 @@
 using Mirror;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameManager : NetworkBehaviour
 {
@@ -8,6 +10,8 @@ public class GameManager : NetworkBehaviour
 
     [SyncVar(hook = nameof(OnImposterPointsChanged))]
     public int imposterPoints;
+
+    [SerializeField] Text pointText;
 
     void OnTotalPointsChanged(int oldValue, int newValue)
     {
