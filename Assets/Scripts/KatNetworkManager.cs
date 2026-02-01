@@ -1,9 +1,12 @@
 using Mirror;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [AddComponentMenu("")]
 public class KatNetworkManager : NetworkManager
 {
+    public RoundTimer roundTimer;
+
     public int playersToStart = 4;
 
     public Transform[] playerSpawnPoints;
@@ -28,8 +31,22 @@ public class KatNetworkManager : NetworkManager
 
             AssignRandomImposter();
             masksSpawned = true;
+
+            SetupTimer();
         }
     }
+
+    [Server]
+    void SetupTimer()
+    {
+        roundTimer.OnRoundEnd += () =>
+        {
+            NetworkManager.singleton.ServerChangeScene("RestartScene");
+        };
+
+        roundTimer.StartRound();
+    }
+
 
     void AssignRandomImposter()
     {
