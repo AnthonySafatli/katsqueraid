@@ -81,7 +81,6 @@ public class Pickup : NetworkBehaviour
                 
                 state.RequestChange(true);
                 heldObject = hitObj;
-                Rigidbody rb = heldObject.GetComponent<Rigidbody>();
             }
         }
     }
@@ -90,8 +89,20 @@ public class Pickup : NetworkBehaviour
     {
         if (heldObject == null) return;
 
-        Rigidbody rb = heldObject.GetComponent<Rigidbody>();
         heldObject.GetComponent<MaskSharedState>().RequestChange(false);
+        heldObject = null;
+    }
+
+    public int GetMaskValue()
+    {
+        if (heldObject == null) return 0;
+        return 1; // TODO: heldObject.GetComponent<MaskSharedState>().maskValue;
+    }
+
+    public void DropZoneDrop()
+    {
+        heldObject.GetComponent<MaskSharedState>().RequestChange(false);
+        NetworkServer.Destroy(heldObject);
         heldObject = null;
     }
 }
