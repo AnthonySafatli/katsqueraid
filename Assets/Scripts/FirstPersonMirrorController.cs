@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerInput))]
-public class FirstPersonMirrorController_InputSystem : NetworkBehaviour
+public class FPPlayerController : NetworkBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 5f;
@@ -27,6 +27,9 @@ public class FirstPersonMirrorController_InputSystem : NetworkBehaviour
 
     private Vector3 velocity;
     private float pitch;
+
+    [Header("Animation")]
+    public Animator playerAnimator;
 
     void Awake()
     {
@@ -83,7 +86,7 @@ public class FirstPersonMirrorController_InputSystem : NetworkBehaviour
 
     void Look()
     {
-        // Mouse Delta is usually "pixels per frame" style data (don’t multiply by deltaTime)
+        // Mouse Delta is usually "pixels per frame" style data (donï¿½t multiply by deltaTime)
         Vector2 lookDelta = lookAction.ReadValue<Vector2>() * mouseSensitivity;
 
         // Yaw on body
@@ -101,6 +104,15 @@ public class FirstPersonMirrorController_InputSystem : NetworkBehaviour
     {
         Vector2 moveInput = moveAction.ReadValue<Vector2>();
         Vector3 move = (transform.right * moveInput.x + transform.forward * moveInput.y) * moveSpeed;
+
+        if (move.sqrMagnitude > 0.01f)
+        {
+            playerAnimator.SetBool("IsRunning", true);
+        }
+        else
+        {
+            playerAnimator.SetBool("IsRunning", false);
+        }
 
         if (cc.isGrounded && velocity.y < 0f)
             velocity.y = -2f;
