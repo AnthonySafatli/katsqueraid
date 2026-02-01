@@ -122,7 +122,7 @@ MonoBehaviour:
   syncDirection: 0
   syncMode: 0
   syncInterval: 0
-  pickupDistance: 10
+  pickupDistance: 5
   holdPoint: {fileID: 6284101643766589367}
 --- !u!1 &6544132837806637511
 GameObject:
@@ -447,6 +447,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aaf2b6dfc3019ed47a04599faeb2bfb0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  syncDirection: 0
+  syncMode: 0
+  syncInterval: 0
+  isImposter: 0
 --- !u!1001 &420002572090532671
 PrefabInstance:
   m_ObjectHideFlags: 0

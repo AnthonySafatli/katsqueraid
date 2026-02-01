@@ -11,7 +11,7 @@ public class GameManager : NetworkBehaviour
     [SyncVar(hook = nameof(OnImposterPointsChanged))]
     public int imposterPoints;
 
-    [SerializeField] Text pointText;
+    [SerializeField] TextMeshProUGUI pointText;
 
     void OnTotalPointsChanged(int oldValue, int newValue)
     {
