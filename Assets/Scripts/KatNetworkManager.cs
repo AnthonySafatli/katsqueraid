@@ -1,11 +1,13 @@
 using Mirror;
 using UnityEngine;
 
-
 [AddComponentMenu("")]
 public class KatNetworkManager : NetworkManager
 {
     public Transform[] playerSpawnPoints;
+    public GameObject Mask;
+
+    private bool maskSpawned = false;
 
     public override void OnServerAddPlayer(NetworkConnectionToClient conn)
     {
@@ -13,11 +15,17 @@ public class KatNetworkManager : NetworkManager
         GameObject player = Instantiate(playerPrefab, startPos.position, startPos.rotation);
 
         NetworkServer.AddPlayerForConnection(conn, player);
+
+        if (numPlayers == 1 && !maskSpawned)
+        {
+            SpawnMask();
+        }
     }
 
-    public override void OnServerDisconnect(NetworkConnectionToClient conn)
+    void SpawnMask()
     {
-        // TODO Custom logic before player is removed can be added here
-        base.OnServerDisconnect(conn);
+        GameObject mask = Instantiate(Mask, Vector3.zero, Quaternion.identity);
+        NetworkServer.Spawn(mask);
+        maskSpawned = true;
     }
 }
