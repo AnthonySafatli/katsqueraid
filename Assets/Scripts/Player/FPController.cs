@@ -114,7 +114,7 @@ public class FPController : NetworkBehaviour
         }
     }
 
-        public override void OnStartLocalPlayer()
+    public override void OnStartLocalPlayer()
     {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -133,6 +133,8 @@ public class FPController : NetworkBehaviour
         moveAction.Enable();
         lookAction.Enable();
         jumpAction.Enable();
+
+        jumpAction.performed += OnJumpPerformed;
     }
 
     void SetLocalBodyHidden(bool hidden)
@@ -172,6 +174,12 @@ public class FPController : NetworkBehaviour
     #endregion
 
     #region Controller Methods
+
+    void OnJumpPerformed(InputAction.CallbackContext _)
+    {
+        if (!isLocalPlayer) return;
+        TryJump();
+    }
 
     public void TryJump()
     {
