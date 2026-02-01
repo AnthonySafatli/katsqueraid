@@ -36,12 +36,13 @@ public class Pickup : NetworkBehaviour
         if (!isLocalPlayer) return;
 
         if (heldObject == null)
-            TryPickup();
+            CmdTryPickup();
         else
-            Drop();
+            CmdDrop();
     }
 
-    void TryPickup()
+    [Command]
+    void CmdTryPickup()
     {
         Ray ray = new Ray(transform.position, transform.forward);
 
@@ -56,11 +57,14 @@ public class Pickup : NetworkBehaviour
                 heldObject.transform.SetParent(holdPoint);
                 heldObject.transform.localPosition = Vector3.zero;
                 heldObject.transform.localRotation = Quaternion.identity;
+
+                RpcPickup(heldObject);
             }
         }
     }
 
-    void Drop()
+    [Command]
+    void CmdDrop()
     {
         if (heldObject == null) return;
 
@@ -68,6 +72,30 @@ public class Pickup : NetworkBehaviour
 
         heldObject.transform.SetParent(null);
         rb.isKinematic = false;
+
+        RpcDrop(heldObject);
+
         heldObject = null;
     }
+
+    [ClientRpc]
+    void RpcPickup(GameObject obj)
+    {
+        if (isLocalPlayer) return; // Local player already handled visuals
+        heldObject = obj;
+        heldObject.transform.SetParent(holdPoint);
+        heldObject.transform.localPosition = Vector3.zero;
+        heldObject.transform.localRotation = Quaternion.identity;
+    }
+
+    [ClientRpc]
+    void RpcDrop(GameObject obj)
+    {
+        if (isLocalPlayer) return;
+        Rigidbody rb = obj.GetComponent<Rigidbody>();
+        obj.transform.SetParent(null);
+        rb.isKinematic = false;
+        heldObject = null;
+    }
+
 }
